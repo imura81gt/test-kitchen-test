@@ -1,0 +1,60 @@
+box: mizzy/serverspec-base
+build:
+  steps:
+    - script:
+        name: Make $HOME/.ssh directory
+        code: mkdir -p $HOME/.ssh
+    - create-file:
+        name: Put SSH public key
+        filename: $HOME/.ssh/id_rsa.pub
+        overwrite: true
+        hide-from-log: true
+        content: $DIGITALOCEAN_SSH_KEY_PUBLIC
+    - create-file:
+        name: Put SSH private key
+        filename: $HOME/.ssh/id_rsa
+        overwrite: true
+        hide-from-log: true
+        content: $DIGITALOCEAN_SSH_KEY_PRIVATE
+    - script:
+        name: Run chmod 0400 $HOME/.ssh/id_rsa
+        code: chmod 0400 $HOME/.ssh/id_rsa
+    - script:
+        name: Run setup.sh
+        code: $WORKING_DIR/setup.sh
+    - script:
+        name: Run vagrant up centos65
+        code: vagrant up centos65 --provider=digital_ocean
+        cwd: $WORKING_DIR
+    - script:
+        name: Run vagrant reload centos65
+        code: vagrant reload centos65
+        cwd: $WORKING_DIR
+    - script:
+        name: Run rake spec:centos65
+        code: rake spec:centos65
+        cwd: $WORKING_DIR
+    - script:
+        name: Run vagrant up ubuntu1310
+        code: vagrant up ubuntu1310 --provider=digital_ocean
+        cwd: $WORKING_DIR
+    - script:
+        name: Run vagrant reload ubuntu1310
+        code: vagrant reload ubuntu1310
+        cwd: $WORKING_DIR
+    - script:
+        name: Run rake spec:ubuntu1310
+        code: rake spec:ubuntu1310
+        cwd: $WORKING_DIR
+
+  after-steps:
+    - script:
+        name: Run vagrant destroy centos65
+        code: vagrant destroy centos65 --force
+        cwd: $WORKING_DIR
+    - script:
+        name: Run vagrant destroy ubuntu1310
+        code: vagrant destroy ubuntu1310 --force
+        cwd: $WORKING_DIR
+    - 1syo/idobata-notify@0.1.1:
+        token: $IDOBATA_TOKEN

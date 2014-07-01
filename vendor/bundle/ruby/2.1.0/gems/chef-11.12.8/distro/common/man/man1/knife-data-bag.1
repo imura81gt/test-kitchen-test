@@ -1,0 +1,469 @@
+.TH "KNIFE-DATA-BAG" "1" "Chef 11.10.0" "" "knife data bag"
+.SH NAME
+knife-data-bag \- The man page for the knife data bag subcommand.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.\" Man page generated from reStructuredText.
+.
+.sp
+A data bag is a global variable that is stored as JSON data and is accessible from a server. A data bag is indexed for searching and can be loaded by a recipe or accessed during a search. The contents of a data bag can vary, but they often include sensitive information (such as database passwords).
+.sp
+A data bag item may be encrypted using \fI\%shared secret encryption\fP. This allows each data bag item to store confidential information (such as a database password) or to be managed in a source control system (without plain\-text data appearing in revision history). Each data bag item may be encrypted individually; if a data bag contains multiple encrypted data bag items, these data bag items are not required to share the same encryption keys.
+.sp
+The \fBknife data bag\fP subcommand is used to manage arbitrary stores of globally available JSON data.
+.SH COMMON OPTIONS
+.sp
+The following options may be used with any of the arguments available to the \fBknife data bag\fP subcommand:
+.INDENT 0.0
+.TP
+.B \fB\-\-chef\-zero\-port PORT\fP
+The port on which chef\-zero will listen.
+.TP
+.B \fB\-c CONFIG_FILE\fP, \fB\-\-config CONFIG_FILE\fP
+The configuration file to use.
+.TP
+.B \fB\-d\fP, \fB\-\-disable\-editing\fP
+Indicates that $EDITOR will not be opened; data will be accepted as\-is.
+.TP
+.B \fB\-\-defaults\fP
+Indicates that Knife will use the default value, instead of asking a user to provide one.
+.TP
+.B \fB\-e EDITOR\fP, \fB\-\-editor EDITOR\fP
+The $EDITOR that is used for all interactive commands.
+.TP
+.B \fB\-E ENVIRONMENT\fP, \fB\-\-environment ENVIRONMENT\fP
+The name of the environment. When this option is added to a command, the command will run only against the named environment.
+.TP
+.B \fB\-F FORMAT\fP, \fB\-\-format FORMAT\fP
+The output format: \fBsummary\fP (default), \fBtext\fP, \fBjson\fP, \fByaml\fP, and \fBpp\fP.
+.TP
+.B \fB\-h\fP, \fB\-\-help\fP
+Shows help for the command.
+.TP
+.B \fB\-k KEY\fP, \fB\-\-key KEY\fP
+The private key that Knife will use to sign requests made by the API client to the server.
+.TP
+.B \fB\-\-[no\-]color\fP
+Indicates whether colored output will be used.
+.TP
+.B \fB\-\-print\-after\fP
+Indicates that data will be shown after a destructive operation.
+.TP
+.B \fB\-s URL\fP, \fB\-\-server\-url URL\fP
+The URL for the server.
+.TP
+.B \fB\-u USER\fP, \fB\-\-user USER\fP
+The user name used by Knife to sign requests made by the API client to the server. Authentication will fail if the user name does not match the private key.
+.TP
+.B \fB\-V\fP, \fB\-\-verbose\fP
+Set for more verbose outputs. Use \fB\-VV\fP for maximum verbosity.
+.TP
+.B \fB\-v\fP, \fB\-\-version\fP
+The version of the chef\-client.
+.TP
+.B \fB\-y\fP, \fB\-\-yes\fP
+Indicates that the response to all confirmation prompts will be "Yes" (and that Knife will not ask for confirmation).
+.TP
+.B \fB\-z\fP, \fB\-\-local\-mode\fP
+Indicates that the chef\-client will be run in local mode, which allows all commands that work against the server to also work against the local chef\-repo.
+.UNINDENT
+.SH CREATE
+.sp
+The \fBcreate\fP argument is used to add a data bag to the server.
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag create DATA_BAG_NAME [DATA_BAG_ITEM] (options)
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fBDATA_BAG_ITEM\fP
+The name of a specific item within a data bag.
+.TP
+.B \fB\-\-secret SECRET\fP
+The encryption key that is used for values contained within a data bag item.
+.TP
+.B \fB\-\-secret\-file FILE\fP
+The path to the file that contains the encryption key.
+.UNINDENT
+.IP Note
+For encrypted data bag items, use \fIeither\fP \fB\-\-secret\fP or \fB\-\-secret\-file\fP, not both.
+.RE
+.sp
+\fBExamples\fP
+.sp
+To create a data bag named "admins", enter:
+.sp
+.nf
+.ft C
+$ knife data bag create admins
+.ft P
+.fi
+.sp
+to return:
+.sp
+.nf
+.ft C
+Created data_bag[admins]
+.ft P
+.fi
+.SH DELETE
+.sp
+The \fBdelete\fP argument is used to delete a data bag or a data bag item from a server.
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag delete DATA_BAG_NAME [DATA_BAG_ITEM] (options)
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fBDATA_BAG_ITEM\fP
+The name of a specific item within a data bag.
+.UNINDENT
+.sp
+\fBExamples\fP
+.sp
+.nf
+.ft C
+$ knife data bag delete data_bag_name
+.ft P
+.fi
+.sp
+To delete an item named "charlie", enter:
+.sp
+.nf
+.ft C
+$ knife data bag delete admins charlie
+.ft P
+.fi
+.sp
+Type \fBY\fP to confirm a deletion.
+.SH EDIT
+.sp
+The \fBedit\fP argument is used to edit the data contained in a data bag. If encryption is being used, the data bag will be decrypted, the data will be made available in the $EDITOR, and then encrypted again before saving it to the server.
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag edit DATA_BAG_NAME [DATA_BAG_ITEM] (options)
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fBDATA_BAG_ITEM\fP
+The name of a specific item within a data bag.
+.TP
+.B \fB\-\-secret SECRET\fP
+The encryption key that is used for values contained within a data bag item.
+.TP
+.B \fB\-\-secret\-file FILE\fP
+The path to the file that contains the encryption key.
+.UNINDENT
+.IP Note
+For encrypted data bag items, use \fIeither\fP \fB\-\-secret\fP or \fB\-\-secret\-file\fP, not both.
+.RE
+.sp
+\fBExamples\fP
+.sp
+To edit the contents of a data bag, enter:
+.sp
+.nf
+.ft C
+$ knife data bag edit admins
+.ft P
+.fi
+.sp
+To edit an item named "charlie" that is contained in a data bag named "admins", enter:
+.sp
+.nf
+.ft C
+$ knife data bag edit admins charlie
+.ft P
+.fi
+.sp
+to open the $EDITOR. Once opened, you can update the data before saving it to the server. For example, by changing:
+.sp
+.nf
+.ft C
+{
+   "id": "charlie"
+}
+.ft P
+.fi
+.sp
+to:
+.sp
+.nf
+.ft C
+{
+   "id": "charlie",
+   "uid": 1005,
+   "gid":"ops",
+   "shell":"/bin/zsh",
+   "comment":"Crazy Charlie"
+}
+.ft P
+.fi
+.SH FROM FILE
+.sp
+The \fBfrom file\fP argument is used to create a data bag on the server from a file. The path to the data bag file must specify one of the following:
+.INDENT 0.0
+.IP \(bu 2
+the name of a data bag
+.IP \(bu 2
+a relative or absolute path to a file
+.UNINDENT
+.sp
+If the name of a data bag is specified, Knife will search for the data bag in \fB./data_bags/bag_name/file\fP. Once opened, the JSON file should be a hash that contains at least an ID key which represents the name of the data bag item.
+.IP Warning
+A chef\-client must be version 11.6 (or higher) when using the \fBknife data bag from file\fP argument with the Enterprise Chef or Open Source Chef version 11 servers.
+.RE
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag from file DATA_BAG_NAME_or_PATH
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fB\-a\fP, \fB\-\-all\fP
+Indicates that all data bags found at the specified path will be uploaded.
+.TP
+.B \fB\-\-secret SECRET\fP
+The encryption key that is used for values contained within a data bag item.
+.TP
+.B \fB\-\-secret\-file FILE\fP
+The path to the file that contains the encryption key.
+.UNINDENT
+.IP Note
+For encrypted data bag items, use \fIeither\fP \fB\-\-secret\fP or \fB\-\-secret\-file\fP, not both.
+.RE
+.sp
+\fBExamples\fP
+.sp
+To create a data bag on the server from a file:
+.sp
+.nf
+.ft C
+$ knife data bag from file "path to JSON file"
+.ft P
+.fi
+.sp
+To create a data bag named "devops_data" that contains encrypted data, enter:
+.sp
+.nf
+.ft C
+$ knife data bag from file devops_data \-\-secret\-file "path to decryption file"
+.ft P
+.fi
+.SH LIST
+.sp
+The \fBlist\fP argument is used to view a list of data bags that are currently available on the server.
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag list
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fB\-w\fP, \fB\-\-with\-uri\fP
+Indicates that the corresponding URIs will be shown.
+.UNINDENT
+.sp
+\fBExamples\fP
+.sp
+.nf
+.ft C
+$ knife data bag list
+.ft P
+.fi
+.SH SHOW
+.sp
+The \fBshow\fP argument is used to view the contents of a data bag.
+.sp
+\fBSyntax\fP
+.sp
+This argument has the following syntax:
+.sp
+.nf
+.ft C
+$ knife data bag show DATA_BAG_NAME (options)
+.ft P
+.fi
+.sp
+\fBOptions\fP
+.sp
+This argument has the following options:
+.INDENT 0.0
+.TP
+.B \fBDATA_BAG_ITEM\fP
+The name of a specific item within a data bag.
+.TP
+.B \fB\-\-secret SECRET\fP
+The encryption key that is used for values contained within a data bag item.
+.TP
+.B \fB\-\-secret\-file FILE\fP
+The path to the file that contains the encryption key.
+.UNINDENT
+.IP Note
+For encrypted data bag items, use \fIeither\fP \fB\-\-secret\fP or \fB\-\-secret\-file\fP, not both.
+.RE
+.sp
+\fBExamples\fP
+.sp
+.nf
+.ft C
+$ knife data bag show admins
+.ft P
+.fi
+.sp
+to return something like:
+.sp
+.nf
+.ft C
+charlie
+.ft P
+.fi
+.sp
+To show the contents of a specific item within data bag, enter:
+.sp
+.nf
+.ft C
+$ knife data bag show admins charlie
+.ft P
+.fi
+.sp
+to return:
+.sp
+.nf
+.ft C
+comment:  Crazy Charlie
+gid:      ops
+id:       charlie
+shell:    /bin/zsh
+uid:      1005
+.ft P
+.fi
+.sp
+To show the contents of a data bag named "passwords" with an item that contains encrypted data named "mysql", enter:
+.sp
+.nf
+.ft C
+$ knife data bag show passwords mysql
+.ft P
+.fi
+.sp
+to return:
+.sp
+.nf
+.ft C
+## sample:
+{
+  "id": "mysql",
+  "pass": "trywgFA6R70NO28PNhMpGhEvKBZuxouemnbnAUQsUyo=\en",
+  "user": "e/p+8WJYVHY9fHcEgAAReg==\en"
+}
+.ft P
+.fi
+.sp
+To show the decrypted contents of the same data bag, enter:
+.sp
+.nf
+.ft C
+$ knife data bag show \-\-secret\-file /path/to/decryption/file passwords mysql
+.ft P
+.fi
+.sp
+to return:
+.sp
+.nf
+.ft C
+## sample:
+{
+   "id": "mysql",
+   "pass": "thesecret123",
+   "user": "fred"
+}
+.ft P
+.fi
+.sp
+To view information in JSON format, use the \fB\-F\fP common option as part of the command like this:
+.sp
+.nf
+.ft C
+$ knife data bag show admins \-F json
+.ft P
+.fi
+.sp
+Other formats available include \fBtext\fP, \fByaml\fP, and \fBpp\fP.
+.SH AUTHOR
+Chef
+.\" Generated by docutils manpage writer.
+.

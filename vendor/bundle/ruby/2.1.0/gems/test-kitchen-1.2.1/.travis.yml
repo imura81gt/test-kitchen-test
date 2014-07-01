@@ -1,0 +1,30 @@
+language: ruby
+
+rvm:
+  - 2.1.0
+  - 2.0.0
+  - 1.9.3
+  - 1.9.2
+  - ruby-head
+  - jruby-19mode
+
+env:
+  - RUBYGEMS_VERSION=2.1.11
+  - RUBYGEMS_VERSION=2.0.14
+  - RUBYGEMS_VERSION=1.8.25
+
+before_install:
+  - gem update --system $RUBYGEMS_VERSION
+  - gem --version
+
+bundler_args: --without guard
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+    - rvm: jruby-19mode
+  exclude:
+    - rvm: 2.0.0
+      env: RUBYGEMS_VERSION=1.8.25
+    - rvm: 2.1.0-preview2
+      env: RUBYGEMS_VERSION=1.8.25
