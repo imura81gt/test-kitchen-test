@@ -1,0 +1,20 @@
+/Users/timura/.anyenv/envs/rbenv/versions/2.1.2/bin/ruby extconf.rb 
+checking for main() in -lgecodesupport... yes
+checking for main() in -lgecodesupport... yes
+checking for main() in -lgecodekernel... yes
+checking for main() in -lgecodeint... yes
+checking for main() in -lgecodeminimodel... yes
+checking for main() in -lgecodesearch... yes
+creating Makefile
+
+make "DESTDIR=" clean
+
+make "DESTDIR="
+compiling define_dummy_init.cxx
+compiling dep_selector_to_gecode.cpp
+compiling dep_selector_to_gecode_interface.cpp
+linking shared-object dep_gecode.bundle
+
+make "DESTDIR=" install
+/usr/local/bin/ginstall -c -m 0755 dep_gecode.bundle ./.gem.20140701-13669-1m5u5nw
+installing default dep_gecode libraries
