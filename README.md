@@ -1,18 +1,28 @@
-# test-kitchen test （test-kitchenハンズオン）
+# test-kitchen test （test-kitchenハンズオン資料）インフラも継続的インテグレーション！
 
+社内LT用資料です。
 
 # 前提
 
-* anyenv やら rbenvやらを使ってruby 2.1.0 の環境にしておく。
-  * （なにも考えずに作り始めて、そのバージョンで作ってしまったので）
+* anyenv やら rbenvやらを使ってrubyをインストールしておく
+* このリポジトリをgit clone する人、かつ、chef-dkを使っていない人（この資料はchef-dkを使用していない場合のコマンドで書いています）
+
+```
+$ cd test-kitchen-test/
+$ bundle install
+-> vendor/bundle/ 配下にtest-kitchenがインストールされる
+```
+* chef-dkを使うとchef、test-kitchen、berkshelf等がインストールされているので、以下の手順の中に出てくる `bundle exec` はいらないです。
+  * 例： `bundle exec kitchen list` -> `kitchen list`
+
 
 # test-kitchenとは？
 
 * chef cookbookをテストするためのツール
 * 好きな仮想サーバでテストができる
   * vagrant、docker、ec2、azure、gce等
-* 好きなサーバ設定自動化ツールでテストができる
-  * chef、pupput、ansible等
+* Busser（ビュッセル）ライブラリによって好きなサーバ設定自動化ツールでテストができる
+  * chef、puppet、ansible等
 * 好きなテストコードでテストができる
   * serverspec、Bats、minitest等
 
@@ -21,6 +31,25 @@
 * [公式](http://kitchen.ci/)
 * [opscodeマニュアル](http://docs.opscode.com/ctl_kitchen.html)
 * [本：Chef実践入門-~コードによるインフラ構成の自動化-](http://www.amazon.co.jp/dp/477416500X/)
+* [Busser-serverspec](http://sssslide.com/speakerdeck.com/d_higuchi/about-busser-serverspec)
+
+# test-kitchenコマンドの流れを `ざっくり` 理解する
+
+
+![test-kitchen-zakkuri.png](https://qiita-image-store.s3.amazonaws.com/0/17518/2d8b1bca-fd31-1714-b8a6-2fef34ec6439.png "test-kitchen-zakkuri.png")
+
+
+## 押さえておくところ
+
+* いろんなOSをいっぺんにテストできる（図の.kitchen.ymlから矢印が２本出ているところ）
+* いろんなテストコードでテストできる（図の吹き出し部分）
+* この図のサイクルを運用で回すことによって品質を担保する（図全体）=> CI（継続的インテグレーション）
+
+# サクッとコマンドだけ試したい人
+
+https://github.com/imura81gt/test-kitchen-test
+
+をcloneして、この資料の `test-kitchen ハンズオン！` までお進みください。
 
 
 # 準備
@@ -263,11 +292,10 @@ $
 
 （以下、まとめ中）
 
-# test-kitchen ハンズオン！
 
-## test-kitchenコマンドの流れを理解する
+## test-kitchenコマンドの流れを `コマンド` で理解する
 
-![test-kitchen001.png](https://qiita-image-store.s3.amazonaws.com/0/17518/69fa3300-3248-bf82-2d87-eb9411ddc09a.png "test-kitchen001.png")
+![test-kitchen-flow.png](https://qiita-image-store.s3.amazonaws.com/0/17518/ffb98245-61b2-686f-7fd4-e9cbc7e3ffb2.png "test-kitchen-flow.png")
 
 
 ## apache2をインスタンスに適用する
@@ -523,6 +551,66 @@ $
 
 
 
+
+# test-kitchen ハンズオン！
+
+```
+$ cd /path/to/work/
+$ git clone https://github.com/imura81gt/test-kitchen-test
+$ cd test-kitchen-test/
+$ bundle install
+$ bundle exec kitchen
+-> ヘルプを参照する
+
+$ bundle exec kitchen list
+-> test-kitchenで起動するインスタンスを確認する
+
+$ cat .kitchen.yml
+-> test-kitchenで起動するインスタンス情報を確認する
+
+$ bundle exec kitchen create
+-> インスタンスを起動する
+
+$ bundle exec kitchen list
+-> ２つインスタンスが起動していることを確認する
+-> `Last Action` が `Created`
+
+$ ls .kitchen/kitchen-vagrant/*/Vagrantfile
+$ cat .kitchen/kitchen-vagrant/default-centos-64/Vagrantfile 
+$ cat .kitchen/kitchen-vagrant/default-ubuntu-1204/Vagrantfile
+-> .kitchen.yamlの情報を元にVagrantfileが作成されていることを確認する
+
+
+$ bundle exec kitchen converge
+-> インスタンスを起動し、cookbooksを適用する
+
+$ bundle exec kitchen list
+-> ２つインスタンスが起動していることを確認する
+-> `Last Action` が `Converged`
+
+$ bundle exec kitchen login default-ubuntu-1204
+-> ubuntuのインスタンスにログインできることを確認する（終わったらexitする）
+-> `bundle exec kitchen lo default-u` といった省略も可能
+
+
+$ bundle exec kitchen login default-centos-64
+-> centosのインスタンスにログインできることを確認する（終わったらexitする）
+
+$ bundle exec kitchen verify
+-> テストを実行する（default-ubuntu-1204のテストでコケる）
+
+$ bundle exec kitchen vefiry default-centos-64
+-> テストを実行する（成功する）
+
+$ bundle exec kitchen destroy
+-> インスタンスを削除する
+
+$ bundle exec kitchen test default-centos-64
+-> インスタンスの起動、cookbook適用、テスト実行、インスタンス削除まで一気にテストできることを確認する
+
+$ bundle exec kitchen test default-ubuntu-1204
+-> インスタンスの起動、cookbook適用までは上手くいくが、テストが失敗し、インスタンスが起動状態で残っていることを確認する。
+```
 
 
 
