@@ -1,10 +1,10 @@
-test-kitchen test （test-kitchenハンズオン）
+# test-kitchen test （test-kitchenハンズオン）
 
 
 # 前提
 
 * anyenv やら rbenvやらを使ってruby 2.1.0 の環境にしておく。
-  * （というか、なにも考えずに作り始めて、そのバージョンで作ってしまった…）
+  * （なにも考えずに作り始めて、そのバージョンで作ってしまったので）
 
 # test-kitchenとは？
 
@@ -311,8 +311,7 @@ apt-get updateを実行しないといろいろ動かない
 
 ### web role、ubuntu roleが適用されるように .kitchen.ymlを修正する
 
-```.kitchen.yml
----
+```ruby:.kitchen.yml
 ---
 driver:
   name: vagrant
@@ -335,11 +334,11 @@ suites:
 
 ### 試しに起動／cookbook適用してみる（converge）
 
-```
+```bash:
 $ bundle exec kitchen converge
 ```
 
-```
+```bash:
 $ bundle exec kitchen list
 Instance             Driver   Provisioner  Last Action
 default-ubuntu-1204  Vagrant  ChefSolo     Converged
@@ -381,7 +380,7 @@ test-kitchenでは
 serverspec/*/*_spec.rb をテストコードとして実行するため
 フォルダ名を変更する
 
-```
+```bash:
 $ mv spec/ serverspec/
 ```
 
@@ -390,7 +389,7 @@ $ mv spec/ serverspec/
 
 .kitchen.yml があるディレクトリに戻って実行
 
-```
+```bash:
 $ bundle exec kitchen verify
 ```
 
@@ -423,7 +422,7 @@ $
 
 テストが混ざっているのでコメントアウトする
 
-```test/integration/default/serverspec/localhost/httpd_spec.rb
+```ruby:test/integration/default/serverspec/localhost/httpd_spec.rb
 require 'spec_helper'
 
 describe package('httpd') do
@@ -447,7 +446,7 @@ end
 
 もう一度テストを流してみる
 
-```
+```bash:
 $ bundle exec kitchen verify default-centos-64
 -----> Starting Kitchen (v1.2.1)
 -----> Verifying <default-centos-64>...
@@ -476,11 +475,11 @@ $
 
 ### destroy
 
-```
+```bash:
 $ bundle exec kitchen destroy default-centos-64
 ```
 
-```
+```bash:
 $ bundle exec kitchen list
 Instance             Driver   Provisioner  Last Action
 default-ubuntu-1204  Vagrant  ChefSolo     Set Up
@@ -491,7 +490,7 @@ $
 
 ### convergeやらverifyやらdestoyやらを全部一気に流してみる（test）
 
-```
+```bash:
 $ bundle exec kitchen test default-centos-64
 
 （省略）
