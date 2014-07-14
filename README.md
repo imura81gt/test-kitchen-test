@@ -6,6 +6,22 @@ test-kitchen test （test-kitchenハンズオン）
 * anyenv やら rbenvやらを使ってruby 2.1.0 の環境にしておく。
   * （というか、なにも考えずに作り始めて、そのバージョンで作ってしまった…）
 
+# test-kitchenとは？
+
+* chef cookbookをテストするためのツール
+* 好きな仮想サーバでテストができる
+  * vagrant、docker、ec2、azure、gce等
+* 好きなサーバ設定自動化ツールでテストができる
+  * chef、pupput、ansible等
+* 好きなテストコードでテストができる
+  * serverspec、Bats、minitest等
+
+# URL
+
+* [公式](http://kitchen.ci/)
+* [opscodeマニュアル](http://docs.opscode.com/ctl_kitchen.html)
+* [本：Chef実践入門-~コードによるインフラ構成の自動化-](http://www.amazon.co.jp/dp/477416500X/)
+
 
 # 準備
 
@@ -109,6 +125,7 @@ $
 ```Berksfile
 site :opscode
 
+cookbook 'apt'
 cookbook 'apache2'
 ```
 
@@ -244,44 +261,266 @@ $
 
 -> テストコードをおいていないから何もしてない状態なので参考まで。
 
-
-
-
-
-# ↑ここまでの状態をgithubに公開
-
-https://github.com/imura81gt/test-kitchen-test
-
-ハンズオンする方はgit cloneしてください。
-
 （以下、まとめ中）
 
 # test-kitchen ハンズオン！
+
+## test-kitchenコマンドの流れを理解する
+
+![test-kitchen001.png](https://qiita-image-store.s3.amazonaws.com/0/17518/69fa3300-3248-bf82-2d87-eb9411ddc09a.png "test-kitchen001.png")
+
 
 ## apache2をインスタンスに適用する
 
 ### web roleを作成する
 
-### web role が適用されるように .kitchen.ymlを修正する
+```roles/web.json
+{
+    "name": "web",
+    "json_class": "Chef::Role",
+    "description": "web role",
+    "default_attributes": {
+      "apache": {
+      }
+    },
+    "run_list": [
+        "recipe[apache2]"
+    ],
+    "chef_type": "role"
+}
+```
 
-### 試しに起動／適用してみる（converge）
+### ubuntu roleを作成する
 
+apt-get updateを実行しないといろいろ動かない
+
+```roles/ubuntu.json
+{
+    "name": "ubuntu",
+    "json_class": "Chef::Role",
+    "description": "ubuntu role",
+    "default_attributes": {
+    },
+    "run_list": [
+        "recipe[apt]"
+    ],
+    "chef_type": "role"
+}
+```
+
+
+### web role、ubuntu roleが適用されるように .kitchen.ymlを修正する
+
+```.kitchen.yml
+---
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-12.04
+    run_list:
+      - role[ubuntu]
+  - name: centos-6.4
+
+suites:
+  - name: default
+    run_list:
+      - role[web]
+    attributes:
+```
+
+### 試しに起動／cookbook適用してみる（converge）
+
+```
+$ bundle exec kitchen converge
+```
+
+```
+$ bundle exec kitchen list
+Instance             Driver   Provisioner  Last Action
+default-ubuntu-1204  Vagrant  ChefSolo     Converged
+default-centos-64    Vagrant  ChefSolo     Converged
+$
+```
 
 ## テストコードを書く
 
 ### serverspec
 
-## test-kitchenの一連の流れを理解しながらテストする
+```bash:
+$ cd test/integration/default/
+$
+$ bundle exec serverspec-init
+Select OS type:
 
-### setup
+  1) UN*X
+  2) Windows
 
-### converge
+Select number: 1
 
-### verify
+Select a backend type:
+
+  1) SSH
+  2) Exec (local)
+
+Select number: 2
+
+ + spec/
+ + spec/localhost/
+ + spec/localhost/httpd_spec.rb
+ + spec/spec_helper.rb
+ + Rakefile
+$
+```
+
+test-kitchenでは
+serverspec/*/*_spec.rb をテストコードとして実行するため
+フォルダ名を変更する
+
+```
+$ mv spec/ serverspec/
+```
+
+### テストコードを実行してみる(verify)
+
+
+.kitchen.yml があるディレクトリに戻って実行
+
+```
+$ bundle exec kitchen verify
+```
+
+-> ubuntuでapacheをインストールするとpackage名がhttpdじゃなかったして、
+　　ubuntuのテストがほとんど失敗するので
+　　CentOSのテストだけを流してみる
+
+
+```bash:
+$ bundle exec kitchen verify default-centos-64
+
+（省略）
+
+       Finished in 0.18527 seconds
+       6 examples, 1 failure
+
+       Failed examples:
+
+       rspec /tmp/busser/suites/serverspec/localhost/httpd_spec.rb:18 # File "/etc/httpd/conf/httpd.conf" content should match /ServerName localhost/
+       /opt/chef/embedded/bin/ruby -I/tmp/busser/suites/serverspec -S /opt/chef/embedded/bin/rspec /tmp/busser/suites/serverspec/localhost/httpd_spec.rb --color --format documentation failed
+       Ruby Script [/tmp/busser/gems/gems/busser-serverspec-0.2.6/lib/busser/runner_plugin/../serverspec/runner.rb /tmp/busser/suites/serverspec] exit code was 1
+>>>>>> Verify failed on instance <default-centos-64>.
+>>>>>> Please see .kitchen/logs/default-centos-64.log for more details
+>>>>>> ------Exception-------
+>>>>>> Class: Kitchen::ActionFailed
+>>>>>> Message: SSH exited (1) for command: [sh -c 'BUSSER_ROOT="/tmp/busser" GEM_HOME="/tmp/busser/gems" GEM_PATH="/tmp/busser/gems" GEM_CACHE="/tmp/busser/gems/cache" ; export BUSSER_ROOT GEM_HOME GEM_PATH GEM_CACHE; sudo -E /tmp/busser/bin/busser test']
+>>>>>> ----------------------
+$
+```
+
+テストが混ざっているのでコメントアウトする
+
+```test/integration/default/serverspec/localhost/httpd_spec.rb
+require 'spec_helper'
+
+describe package('httpd') do
+  it { should be_installed }
+end
+
+describe service('httpd') do
+  it { should be_enabled   }
+  it { should be_running   }
+end
+
+describe port(80) do
+  it { should be_listening }
+end
+
+#describe file('/etc/httpd/conf/httpd.conf') do
+#  it { should be_file }
+#  its(:content) { should match /ServerName localhost/ }
+#end
+```
+
+もう一度テストを流してみる
+
+```
+$ bundle exec kitchen verify default-centos-64
+-----> Starting Kitchen (v1.2.1)
+-----> Verifying <default-centos-64>...
+       Removing /tmp/busser/suites/serverspec
+       Uploading /tmp/busser/suites/serverspec/localhost/httpd_spec.rb (mode=0644)
+       Uploading /tmp/busser/suites/serverspec/spec_helper.rb (mode=0644)
+-----> Running serverspec test suite
+       /opt/chef/embedded/bin/ruby -I/tmp/busser/suites/serverspec -S /opt/chef/embedded/bin/rspec /tmp/busser/suites/serverspec/localhost/httpd_spec.rb --color --format documentation
+
+       Package "httpd"
+         should be installed
+
+       Service "httpd"
+         should be enabled
+         should be running
+
+       Port "80"
+         should be listening
+
+       Finished in 0.16363 seconds
+       4 examples, 0 failures
+       Finished verifying <default-centos-64> (0m2.11s).
+-----> Kitchen is finished. (0m2.73s)
+$
+```
 
 ### destroy
 
-### そして…test
+```
+$ bundle exec kitchen destroy default-centos-64
+```
+
+```
+$ bundle exec kitchen list
+Instance             Driver   Provisioner  Last Action
+default-ubuntu-1204  Vagrant  ChefSolo     Set Up
+default-centos-64    Vagrant  ChefSolo     <Not Created>
+$
+```
+
+
+### convergeやらverifyやらdestoyやらを全部一気に流してみる（test）
+
+```
+$ bundle exec kitchen test default-centos-64
+
+（省略）
+
+       Package "httpd"
+         should be installed
+
+       Service "httpd"
+         should be enabled
+         should be running
+
+       Port "80"
+         should be listening
+
+       Finished in 0.16632 seconds
+       4 examples, 0 failures
+       Finished verifying <default-centos-64> (0m2.11s).
+-----> Destroying <default-centos-64>...
+       ==> default: Forcing shutdown of VM...
+       ==> default: Destroying VM and associated drives...
+       Vagrant instance <default-centos-64> destroyed.
+       Finished destroying <default-centos-64> (0m5.01s).
+       Finished testing <default-centos-64> (5m51.67s).
+-----> Kitchen is finished. (5m52.26s)
+$
+```
+
+
+
 
 
 

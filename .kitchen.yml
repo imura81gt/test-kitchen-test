@@ -7,9 +7,12 @@ provisioner:
 
 platforms:
   - name: ubuntu-12.04
+    run_list:
+      - role[ubuntu]
   - name: centos-6.4
 
 suites:
   - name: default
     run_list:
+      - role[web]
     attributes:
